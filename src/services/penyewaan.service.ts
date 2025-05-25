@@ -113,7 +113,7 @@ export const updatePenyewaan = async (req: Request, res: Response) => {
         data: {
           id_pelanggan: payload.id_pelanggan,
           tanggal_sewa: payload.tanggal_sewa,
-          tanggal_kembali: payload.tanggal_kembali,
+          tanggal_kembali: new Date(),
           status: payload.status,
         },
       });
