@@ -87,13 +87,18 @@ export const createPenyewaan = async (req: Request, res: Response) => {
 export const updatePenyewaan = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const payload: UpdatePenyewaanSchema = updatePenyewaanSchema.parse(
+      req.body
+    );
 
-    // Temukan data penyewaan berdasarkan id
     const existingPenyewaan = await prisma.penyewaan.findUnique({
       where: { id_penyewaan: id },
       include: {
-        kendaraan_dalam_penyewaan: true,
-        pembayaran: true,
+        kendaraan_dalam_penyewaan: {
+          include: {
+            kendaraan: true,
+          },
+        },
       },
     });
 
@@ -102,74 +107,49 @@ export const updatePenyewaan = async (req: Request, res: Response) => {
       return;
     }
 
-    // Validasi payload
-    const payload: UpdatePenyewaanSchema = updatePenyewaanSchema.parse(
-      req.body
-    );
-
-    // Update data penyewaan
-    const updated = await prisma.penyewaan.update({
-      where: { id_penyewaan: id },
-      data: {
-        id_pelanggan: payload.id_pelanggan,
-        tanggal_sewa: payload.tanggal_sewa
-          ? new Date(payload.tanggal_sewa)
-          : existingPenyewaan.tanggal_sewa,
-        tanggal_kembali: payload.tanggal_kembali
-          ? new Date(payload.tanggal_kembali)
-          : existingPenyewaan.tanggal_kembali,
-        status: payload.status,
-        kendaraan_dalam_penyewaan: {
-          update: {
-            where: {
-              id_penyewaan_id_kendaraan: {
-                id_penyewaan: id,
-                id_kendaraan: payload.id_kendaraan as string,
-              },
-            },
-            data: {
-              id_kendaraan: payload.id_kendaraan,
-            },
-          },
+    const updatedPenyewaan = await prisma.$transaction(async (tx) => {
+      await tx.penyewaan.update({
+        where: { id_penyewaan: existingPenyewaan.id_penyewaan },
+        data: {
+          id_pelanggan: payload.id_pelanggan,
+          tanggal_sewa: payload.tanggal_sewa,
+          tanggal_kembali: payload.tanggal_kembali,
+          status: payload.status,
         },
-        pembayaran: {
-          update: {
-            where: { id_penyewaan: id },
-            data: {
-              metode_pembayaran: payload.metode_pembayaran,
-              tanggal: payload.tanggal_pembayaran
-                ? new Date(payload.tanggal_pembayaran)
-                : undefined,
-            },
-          },
-        },
-      },
-      include: {
-        kendaraan_dalam_penyewaan: true,
-        pembayaran: true,
-      },
-    });
-
-    // Jika status berubah menjadi DIKEMBALIKAN, tambahkan unit kendaraan
-    if (payload.status === "DIKEMBALIKAN") {
-      const kendaraan = await prisma.kendaraan.findUnique({
-        where: { id_kendaraan: payload.id_kendaraan },
       });
-      if (kendaraan) {
-        await prisma.kendaraan.update({
-          where: { id_kendaraan: payload.id_kendaraan },
-          data: {
-            unit: kendaraan.unit + 1,
-            status: "TERSEDIA",
-          },
-        });
-      }
-    }
 
+      await tx.pembayaran.update({
+        where: { id_penyewaan: existingPenyewaan.id_penyewaan },
+        data: {
+          metode_pembayaran: payload.metode_pembayaran,
+          tanggal: payload.tanggal_pembayaran,
+        },
+      });
+
+      await tx.kendaraan.update({
+        where: {
+          id_kendaraan:
+            existingPenyewaan.kendaraan_dalam_penyewaan[0].id_kendaraan,
+        },
+        data: {
+          unit:
+            payload.status === "DIKEMBALIKAN"
+              ? existingPenyewaan.kendaraan_dalam_penyewaan[0].kendaraan.unit +
+                1
+              : existingPenyewaan.kendaraan_dalam_penyewaan[0].kendaraan.unit,
+          status:
+            payload.status === "DIKEMBALIKAN" &&
+            existingPenyewaan.kendaraan_dalam_penyewaan[0].kendaraan.unit + 1 >
+              0
+              ? "TERSEDIA"
+              : existingPenyewaan.kendaraan_dalam_penyewaan[0].kendaraan.status,
+        },
+      });
+    });
     res.status(200).send({
       message: "Penyewaan berhasil diperbarui",
-      data: updated,
     });
+    return;
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).send({
@@ -182,6 +162,7 @@ export const updatePenyewaan = async (req: Request, res: Response) => {
       message: "Internal Server Error",
       error: error instanceof Error ? error.message : "Unknown error",
     });
+    return;
   }
 };
 
