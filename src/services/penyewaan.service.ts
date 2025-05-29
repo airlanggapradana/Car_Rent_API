@@ -28,44 +28,48 @@ export const createPenyewaan = async (req: Request, res: Response) => {
       return;
     }
 
-    const penyewaan = await prisma.penyewaan.create({
-      data: {
-        id_pelanggan: payload.id_pelanggan,
-        tanggal_sewa: new Date(payload.tanggal_sewa),
-        tanggal_kembali: new Date(payload.tanggal_kembali),
-        status: "DISEWA",
-        kendaraan_dalam_penyewaan: {
-          create: {
-            id_kendaraan: payload.id_kendaraan,
+    const result = await prisma.$transaction(async (tx) => {
+      const penyewaan = await tx.penyewaan.create({
+        data: {
+          id_pelanggan: payload.id_pelanggan,
+          tanggal_sewa: new Date(payload.tanggal_sewa),
+          tanggal_kembali: new Date(payload.tanggal_kembali),
+          status: "DISEWA",
+          kendaraan_dalam_penyewaan: {
+            create: {
+              id_kendaraan: payload.id_kendaraan,
+            },
+          },
+          pembayaran: {
+            create: {
+              jumlah: kendaraan.harga_sewa,
+              metode_pembayaran: payload.metode_pembayaran,
+              tanggal: new Date(payload.tanggal_pembayaran),
+            },
           },
         },
-        pembayaran: {
-          create: {
-            jumlah: kendaraan.harga_sewa,
-            metode_pembayaran: payload.metode_pembayaran,
-            tanggal: new Date(payload.tanggal_pembayaran),
-          },
+        include: {
+          kendaraan_dalam_penyewaan: true,
+          pembayaran: true,
         },
-      },
-      include: {
-        kendaraan_dalam_penyewaan: true,
-        pembayaran: true,
-      },
+      });
+
+      await tx.kendaraan.update({
+        where: {
+          id_kendaraan: payload.id_kendaraan,
+        },
+        data: {
+          unit: kendaraan.unit - 1,
+          status: kendaraan.unit - 1 > 0 ? "TERSEDIA" : "HABIS",
+        },
+      });
+
+      return penyewaan;
     });
 
-    // kurangi unit kendaraan
-    await prisma.kendaraan.update({
-      where: {
-        id_kendaraan: payload.id_kendaraan,
-      },
-      data: {
-        unit: kendaraan.unit - 1,
-        status: kendaraan.unit - 1 > 0 ? "TERSEDIA" : "HABIS",
-      },
-    });
     res.status(201).send({
       message: "Penyewaan berhasil dibuat",
-      data: penyewaan,
+      data: result,
     });
     return;
   } catch (error) {
