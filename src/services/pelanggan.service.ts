@@ -17,6 +17,11 @@ export const getAllPelanggan = async (req: Request, res: Response) => {
         penyewaan: {
           include: {
             pembayaran: true,
+            kendaraan_dalam_penyewaan: {
+              select: {
+                kendaraan: true,
+              },
+            },
           },
         },
       },

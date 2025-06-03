@@ -47,7 +47,6 @@ export const updateKendaraanSchema = z.object({
 export const createPenyewaanSchema = z.object({
   id_pelanggan: z.string().min(1, { message: "ID Pelanggan harus diisi" }),
   id_kendaraan: z.string().min(1, { message: "ID Kendaraan harus diisi" }),
-  tanggal_sewa: z.string().min(1, { message: "Tanggal sewa harus diisi" }),
   tanggal_kembali: z
     .string()
     .min(1, { message: "Tanggal kembali harus diisi" }),

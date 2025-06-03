@@ -32,7 +32,7 @@ export const createPenyewaan = async (req: Request, res: Response) => {
       const penyewaan = await tx.penyewaan.create({
         data: {
           id_pelanggan: payload.id_pelanggan,
-          tanggal_sewa: new Date(payload.tanggal_sewa),
+          tanggal_sewa: new Date(),
           tanggal_kembali: new Date(payload.tanggal_kembali),
           status: "DISEWA",
           kendaraan_dalam_penyewaan: {
