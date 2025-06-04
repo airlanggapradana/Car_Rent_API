@@ -48,6 +48,10 @@ export const createPenyewaan = async (req: Request, res: Response) => {
           },
           pembayaran: {
             create: {
+              id_pembayaran: `PAY-${crypto
+                .randomUUID()
+                .slice(0, 3)
+                .toLocaleUpperCase()}`,
               jumlah: Number(kendaraan.harga_sewa) * diffdate,
               metode_pembayaran: payload.metode_pembayaran,
               tanggal: new Date(payload.tanggal_pembayaran),
