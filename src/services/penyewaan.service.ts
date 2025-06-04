@@ -7,6 +7,7 @@ import {
   UpdatePenyewaanSchema,
   updatePenyewaanSchema,
 } from "../zod/schema";
+import { differenceInDays } from "date-fns";
 
 export const createPenyewaan = async (req: Request, res: Response) => {
   try {
@@ -29,6 +30,7 @@ export const createPenyewaan = async (req: Request, res: Response) => {
     }
 
     const result = await prisma.$transaction(async (tx) => {
+      const diffdate = differenceInDays(payload.tanggal_kembali, new Date());
       const penyewaan = await tx.penyewaan.create({
         data: {
           id_pelanggan: payload.id_pelanggan,
@@ -42,7 +44,7 @@ export const createPenyewaan = async (req: Request, res: Response) => {
           },
           pembayaran: {
             create: {
-              jumlah: kendaraan.harga_sewa,
+              jumlah: Number(kendaraan.harga_sewa) * diffdate,
               metode_pembayaran: payload.metode_pembayaran,
               tanggal: new Date(payload.tanggal_pembayaran),
             },
