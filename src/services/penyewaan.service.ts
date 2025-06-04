@@ -33,6 +33,10 @@ export const createPenyewaan = async (req: Request, res: Response) => {
       const diffdate = differenceInDays(payload.tanggal_kembali, new Date());
       const penyewaan = await tx.penyewaan.create({
         data: {
+          id_penyewaan: `R-${crypto
+            .randomUUID()
+            .slice(0, 3)
+            .toLocaleUpperCase()}`,
           id_pelanggan: payload.id_pelanggan,
           tanggal_sewa: new Date(),
           tanggal_kembali: new Date(payload.tanggal_kembali),
