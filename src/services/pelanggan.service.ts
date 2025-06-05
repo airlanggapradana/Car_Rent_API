@@ -19,7 +19,14 @@ export const getAllPelanggan = async (req: Request, res: Response) => {
             pembayaran: true,
             kendaraan_dalam_penyewaan: {
               select: {
-                kendaraan: true,
+                kendaraan: {
+                  select: {
+                    harga_sewa: true,
+                    merk: true,
+                    model: true,
+                    tahun: true,
+                  },
+                },
               },
             },
           },

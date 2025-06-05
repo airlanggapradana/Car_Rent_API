@@ -213,11 +213,24 @@ export const getAllPenyewaan = async (req: Request, res: Response) => {
       include: {
         pelanggan: true,
         kendaraan_dalam_penyewaan: {
-          include: {
-            kendaraan: true,
+          select: {
+            kendaraan: {
+              select: {
+                merk: true,
+                model: true,
+                harga_sewa: true,
+                tahun: true,
+              },
+            },
           },
         },
-        pembayaran: true,
+        pembayaran: {
+          select: {
+            jumlah: true,
+            metode_pembayaran: true,
+            tanggal: true,
+          },
+        },
       },
     });
     if (penyewaan.length === 0) {
