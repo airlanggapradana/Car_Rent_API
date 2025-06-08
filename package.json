@@ -5,6 +5,7 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "tsc",
+    "vercel-build": "npx prisma generate && npm run build",
     "dev": "nodemon -r dotenv/config src/server.ts",
     "db:pull": "prisma db pull",
     "db:push": "prisma db push",
