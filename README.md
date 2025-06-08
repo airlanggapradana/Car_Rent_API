@@ -109,3 +109,29 @@ Repositori ini merupakan tugas akhir dari praktikum sistem basis data, dimana ka
 | Parameter | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
 | `id_kendaraan`      | `string` | **Required**. |
+
+#### GET penyewaan
+
+```http
+  GET /api/penyewaan
+```
+
+#### PUT penyewaan
+
+```http
+  PUT /api/penyewaan/${id_penyewaan}
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `id_penyewaan`      | `string` | **Required**. |
+
+#### DELETE penyewaan
+
+```http
+  DELETE /api/penyewaan/${id_penyewaan}
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `id_penyewaan`      | `string` | **Required**. |
