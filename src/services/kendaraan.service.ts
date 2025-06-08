@@ -24,7 +24,7 @@ export const createKendaraan = async (req: Request, res: Response) => {
         tahun: payload.tahun,
         harga_sewa: payload.harga_sewa,
         unit: payload.unit,
-        status: payload.status,
+        status: "TERSEDIA",
       },
     });
     res.status(201).send({
@@ -142,6 +142,12 @@ export const getAllKendaraan = async (req: Request, res: Response) => {
         },
       },
     });
+    if (kendaraan.length === 0) {
+      res.status(200).send({
+        message: "Tidak ada kendaraan ditemukan",
+      });
+      return;
+    }
     res.status(200).send({
       message: "Berhasil mendapatkan semua kendaraan",
       data: kendaraan,

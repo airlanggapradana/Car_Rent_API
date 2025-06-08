@@ -29,7 +29,6 @@ export const createKendaraanSchema = z.object({
     .number()
     .min(100000, { message: "Harga sewa harus minimal 100000" }),
   unit: z.number().min(1, { message: "Unit harus minimal 1" }),
-  status: z.enum(["TERSEDIA", "HABIS"]),
 });
 
 export const updateKendaraanSchema = z.object({
