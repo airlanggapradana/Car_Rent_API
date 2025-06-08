@@ -30,7 +30,12 @@ export const createPenyewaan = async (req: Request, res: Response) => {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const diffdate = differenceInDays(payload.tanggal_kembali, new Date());
+      // Calculate the difference in days between tanggal_kembali and tanggal_sewa from payload
+      const tanggalKembali = new Date(payload.tanggal_kembali);
+      tanggalKembali.setHours(12, 0, 0, 0);
+      const tanggalSewa = new Date();
+      tanggalSewa.setHours(12, 0, 0, 0);
+      const diffdate = differenceInDays(tanggalKembali, tanggalSewa);
       const penyewaan = await tx.penyewaan.create({
         data: {
           id_penyewaan: `R-${crypto
@@ -38,8 +43,8 @@ export const createPenyewaan = async (req: Request, res: Response) => {
             .slice(0, 3)
             .toLocaleUpperCase()}`,
           id_pelanggan: payload.id_pelanggan,
-          tanggal_sewa: new Date(),
-          tanggal_kembali: new Date(payload.tanggal_kembali),
+          tanggal_sewa: tanggalSewa,
+          tanggal_kembali: tanggalKembali,
           status: "DISEWA",
           kendaraan_dalam_penyewaan: {
             create: {
